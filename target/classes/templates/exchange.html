@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lagn="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<title>환율 계산</title>
+</head>
+<body>
+    <div><h1>환율 계산</h1></div>
+    <div>송금계산: 미국(USD)</div>
+    <div>수취국가: 
+        <select>
+            <th:block th:each="quote : ${data.quotes}">
+                <option th:if="${quote.key == 'USDKRW'}" th:value="${quote.value}" th:data-country="${#strings.replace(quote.key, 'USD', '')}" selected>한국(KRW)</option>
+                <option th:if="${quote.key == 'USDJPY'}" th:value="${quote.value}" th:data-country="${#strings.replace(quote.key, 'USD', '')}">일본(JPY)</option>
+                <option th:if="${quote.key == 'USDPHP'}" th:value="${quote.value}" th:data-country="${#strings.replace(quote.key, 'USD', '')}">필리핀(PHP)</option>
+            </th:block>
+        </select>
+    </div>
+    <div>환율: <span id="exchange"></span> <span id="exchangeUnit"></span></div>
+    <div>송금액: <input id="remittance" type="text"/> USD</div>
+    <button>Submit</button>
+    
+    <div id="total"></div>
+</body>
+<script>
+    $(function () {
+    	
+    	$(document).on('change', 'select', function () {
+    		$("#exchange").text(format($(this).val()));
+    		$("#exchangeUnit").text(unit() + "/USD");
+        });
+    	
+    	$(document).on('click', 'button', function () {
+    		var exchange = $("#exchange").text();
+    		var remittance = $("#remittance").val();
+    		
+    		if ($("#remittance").val() == "" || $("#remittance").val() < 0 || $("#remittance").val() > 10000) {
+    			alert("송금액이 바르지 않습니다");
+    			return;
+    		}
+
+    		$("#total").text("수취금액은 " + format(remittance * unFormat(exchange)) + " " + unit() + " 입니다.");
+    	});
+
+    	$("select").trigger('change');
+    	
+    	function format(price) {
+            return (Math.floor(price * 100) / 100).toFixed(2).replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,');
+        }
+    	
+    	function unFormat(price) {
+            return price.replace(/,/g, '');
+        }
+    	
+    	function unit() {
+    		return $("select option:selected").data("country");
+    	}
+    })
+</script>
+</html>
